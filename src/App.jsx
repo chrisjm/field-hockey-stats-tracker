@@ -7,7 +7,7 @@ import StatsTab from './components/StatsTab';
 import PlayerModal from './components/PlayerModal';
 
 const App = () => {
-    const [activeTab, setActiveTab] = useState('setup');
+    const [activeTab, setActiveTab] = useState('games');
     const [players, setPlayers] = useState([]);
     const [games, setGames] = useState([]);
     const [currentGameId, setCurrentGameId] = useState(null);
@@ -28,6 +28,7 @@ const App = () => {
     const [homeScorePulse, setHomeScorePulse] = useState(false);
     const [appReady, setAppReady] = useState(false);
     const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
+    const [editingGameId, setEditingGameId] = useState(null);
 
     const currentGame = useMemo(
         () => games.find(game => game.id === currentGameId) || null,
@@ -176,6 +177,22 @@ const App = () => {
         const location = locationInput.trim();
         const gameDate = gameDateInput;
 
+        if (editingGameId) {
+            setGames(prev => prev.map(game => (
+                game.id === editingGameId
+                    ? {
+                        ...game,
+                        homeTeam,
+                        awayTeam,
+                        location,
+                        gameDate
+                    }
+                    : game
+            )));
+            setEditingGameId(null);
+            return;
+        }
+
         const game = {
             id: Date.now(),
             homeTeam,
@@ -200,6 +217,25 @@ const App = () => {
         setGameTime(0);
         setIsTimerRunning(false);
         setActiveTab('game');
+    };
+
+    const handleEditGame = (gameId) => {
+        const game = games.find(item => item.id === gameId);
+        if (!game) return;
+        setHomeTeamInput(game.homeTeam || '');
+        setAwayTeamInput(game.awayTeam || '');
+        setGameDateInput(game.gameDate || '');
+        setLocationInput(game.location || '');
+        setEditingGameId(game.id);
+        setActiveTab('games');
+    };
+
+    const handleCancelEditGame = () => {
+        setEditingGameId(null);
+        setHomeTeamInput('');
+        setAwayTeamInput('');
+        setGameDateInput('');
+        setLocationInput('');
     };
 
     const handleAddPlayer = () => {
@@ -260,7 +296,7 @@ const App = () => {
     const handleEventClick = (statType, team) => {
         if (!currentGame) {
             alert('Please start a game first');
-            setActiveTab('setup');
+            setActiveTab('games');
             return;
         }
 
@@ -454,14 +490,14 @@ const App = () => {
             </header>
 
             <nav className="flex bg-white rounded-t-xl overflow-hidden shadow-sm mx-2 md:mx-0">
-                <button className={tabButtonClass('setup')} onClick={() => setActiveTab('setup')}>Setup</button>
+                <button className={tabButtonClass('games')} onClick={() => setActiveTab('games')}>Games</button>
                 <button className={tabButtonClass('roster')} onClick={() => setActiveTab('roster')}>Roster</button>
                 <button className={tabButtonClass('game')} onClick={() => setActiveTab('game')}>Live Game</button>
                 <button className={tabButtonClass('stats')} onClick={() => setActiveTab('stats')}>Stats</button>
             </nav>
 
             <main className="bg-white rounded-b-xl shadow-md p-4 md:p-6 mb-8 mx-2 md:mx-0 min-h-[500px]">
-                {activeTab === 'setup' && (
+                {activeTab === 'games' && (
                     <SetupTab
                         homeTeamInput={homeTeamInput}
                         setHomeTeamInput={setHomeTeamInput}
@@ -474,6 +510,9 @@ const App = () => {
                         handleStartGame={handleStartGame}
                         games={games}
                         handleLoadGame={handleLoadGame}
+                        handleEditGame={handleEditGame}
+                        handleCancelEditGame={handleCancelEditGame}
+                        editingGameId={editingGameId}
                     />
                 )}
 
