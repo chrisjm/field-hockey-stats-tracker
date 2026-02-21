@@ -102,7 +102,10 @@ const App = () => {
 
     useEffect(() => {
         const stored = localStorage.getItem('fieldHockeyStats');
-        if (!stored) return;
+        if (!stored) {
+            setHasLoadedStorage(true);
+            return;
+        }
         try {
             const data = JSON.parse(stored);
             setPlayers(data.players || []);
