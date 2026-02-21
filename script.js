@@ -348,7 +348,8 @@ class FieldHockeyStatsTracker {
             this.pendingEvent = {
                 statType,
                 time: eventTime,
-                period: this.currentGame.period
+                period: this.currentGame.period,
+                mode: 'create'
             };
             this.showPlayerSelector(statType);
         }
@@ -365,7 +366,8 @@ class FieldHockeyStatsTracker {
             period: this.currentGame.period,
             team: 'away',
             statType: statType,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            id: Date.now()
         };
 
         this.currentGame.events.push(event);
@@ -379,8 +381,13 @@ class FieldHockeyStatsTracker {
         const subtitle = document.getElementById('modal-subtitle');
         const grid = document.getElementById('modal-players-grid');
 
-        title.textContent = `Who got the ${this.formatStatType(statType)}?`;
-        subtitle.textContent = `Time: ${this.formatTime(this.pendingEvent.time)}`;
+        if (this.pendingEvent?.mode === 'edit') {
+            title.textContent = `Update ${this.formatStatType(statType)} Player`;
+            subtitle.textContent = `Editing time: ${this.formatTime(this.pendingEvent.time)}`;
+        } else {
+            title.textContent = `Who got the ${this.formatStatType(statType)}?`;
+            subtitle.textContent = `Time: ${this.formatTime(this.pendingEvent.time)}`;
+        }
 
         // Populate grid
         grid.innerHTML = this.players.map(player => `
@@ -409,7 +416,45 @@ class FieldHockeyStatsTracker {
     }
 
     finalizeHomeEvent(playerId) {
-        const { statType, time, period } = this.pendingEvent;
+        const { statType, time, period, mode, eventId } = this.pendingEvent;
+
+        if (mode === 'edit') {
+            const eventIndex = this.currentGame.events.findIndex(e => e.id === eventId);
+            if (eventIndex === -1) return;
+
+            const event = this.currentGame.events[eventIndex];
+            const statKey = this.getStatKey(event.statType);
+
+            if (event.playerId && this.currentGame.playerStats[event.playerId]) {
+                this.currentGame.playerStats[event.playerId][statKey] = Math.max(0, this.currentGame.playerStats[event.playerId][statKey] - 1);
+            }
+
+            let playerName = 'Unknown Player';
+            let playerNumber = '--';
+
+            if (playerId) {
+                const player = this.players.find(p => p.id === playerId);
+                if (player) {
+                    playerName = player.name;
+                    playerNumber = player.number;
+
+                    if (!this.currentGame.playerStats[playerId]) {
+                        this.currentGame.playerStats[playerId] = this.getEmptyStats();
+                    }
+                    this.currentGame.playerStats[playerId][statKey]++;
+                }
+            }
+
+            event.playerId = playerId;
+            event.playerName = playerName;
+            event.playerNumber = playerNumber;
+            event.timestamp = new Date().toISOString();
+
+            this.saveToStorage();
+            this.displayGameEvents();
+            this.closePlayerSelector();
+            return;
+        }
 
         let playerName = 'Unknown Player';
         let playerNumber = '--';
@@ -529,6 +574,14 @@ class FieldHockeyStatsTracker {
                 ? `<span class="font-bold">#${event.playerNumber}</span> ${event.playerName}`
                 : `Opponent`;
 
+            const editButton = isHome
+                ? `<button onclick="tracker.startEditEvent(${event.id})" class="text-gray-400 hover:text-indigo-600 p-1" title="Edit player"><i class="fas fa-user-edit"></i></button>`
+                : '';
+
+            const deleteButton = event.id
+                ? `<button onclick="tracker.deleteEvent(${event.id})" class="text-gray-400 hover:text-red-500 p-1" title="Delete event"><i class="fas fa-times"></i></button>`
+                : '';
+
             return `
                 <div class="${bgColor} p-3 rounded shadow-sm flex justify-between items-center mb-2">
                     <div class="flex items-center gap-3">
@@ -540,11 +593,28 @@ class FieldHockeyStatsTracker {
                     </div>
                     <div class="flex items-center gap-3">
                         <span class="text-sm font-mono font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">${timeStr}</span>
-                        ${event.id ? `<button onclick="tracker.deleteEvent(${event.id})" class="text-gray-400 hover:text-red-500 p-1"><i class="fas fa-times"></i></button>` : ''}
+                        ${editButton}
+                        ${deleteButton}
                     </div>
                 </div>
             `;
         }).join('');
+    }
+
+    startEditEvent(eventId) {
+        if (!this.currentGame) return;
+        const event = this.currentGame.events.find(e => e.id === eventId);
+        if (!event || event.team !== 'home') return;
+
+        this.pendingEvent = {
+            statType: event.statType,
+            time: event.time,
+            period: event.period,
+            mode: 'edit',
+            eventId
+        };
+
+        this.showPlayerSelector(event.statType);
     }
 
     formatTime(seconds) {
