@@ -27,6 +27,7 @@ const App = () => {
     const [timeInput, setTimeInput] = useState('00:00');
     const [homeScorePulse, setHomeScorePulse] = useState(false);
     const [appReady, setAppReady] = useState(false);
+    const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
 
     const currentGame = useMemo(
         () => games.find(game => game.id === currentGameId) || null,
@@ -105,6 +106,8 @@ const App = () => {
             setCurrentGameId(data.currentGameId || null);
         } catch (error) {
             console.error('Error loading data from storage:', error);
+        } finally {
+            setHasLoadedStorage(true);
         }
     }, []);
 
@@ -147,9 +150,10 @@ const App = () => {
     }, [gameTime, currentGameId]);
 
     useEffect(() => {
+        if (!hasLoadedStorage) return;
         const data = { players, games, currentGameId };
         localStorage.setItem('fieldHockeyStats', JSON.stringify(data));
-    }, [players, games, currentGameId]);
+    }, [players, games, currentGameId, hasLoadedStorage]);
 
     const updateCurrentGame = (updater) => {
         if (!currentGame) return;
