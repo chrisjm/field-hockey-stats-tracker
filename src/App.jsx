@@ -29,6 +29,7 @@ const App = () => {
     const [appReady, setAppReady] = useState(false);
     const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
     const [editingGameId, setEditingGameId] = useState(null);
+    const [editingPlayerId, setEditingPlayerId] = useState(null);
 
     const currentGame = useMemo(
         () => games.find(game => game.id === currentGameId) || null,
@@ -249,21 +250,58 @@ const App = () => {
             return;
         }
 
-        const player = {
-            id: Date.now(),
-            name,
-            number: parseInt(number, 10),
-            position
-        };
-
-        setPlayers(prev => [...prev, player]);
+        if (editingPlayerId) {
+            setPlayers(prev => prev.map(player => (
+                player.id === editingPlayerId
+                    ? { ...player, name, number, position }
+                    : player
+            )));
+            setGames(prev => prev.map(game => ({
+                ...game,
+                events: (game.events || []).map(event => (
+                    event.playerId === editingPlayerId
+                        ? { ...event, playerName: name, playerNumber: number }
+                        : event
+                ))
+            })));
+            setEditingPlayerId(null);
+        } else {
+            const player = {
+                id: Date.now(),
+                name,
+                number,
+                position
+            };
+            setPlayers(prev => [...prev, player]);
+        }
         setPlayerName('');
         setPlayerNumber('');
+        setPlayerPosition('');
+    };
+
+    const handleEditPlayer = (playerId) => {
+        const player = players.find(item => item.id === playerId);
+        if (!player) return;
+        setPlayerName(player.name || '');
+        setPlayerNumber(player.number?.toString() || '');
+        setPlayerPosition(player.position || '');
+        setEditingPlayerId(player.id);
+        setActiveTab('roster');
+    };
+
+    const handleCancelEditPlayer = () => {
+        setEditingPlayerId(null);
+        setPlayerName('');
+        setPlayerNumber('');
+        setPlayerPosition('');
     };
 
     const handleRemovePlayer = (playerId) => {
         if (!window.confirm('Remove this player from the roster?')) return;
         setPlayers(prev => prev.filter(player => player.id !== playerId));
+        if (editingPlayerId === playerId) {
+            handleCancelEditPlayer();
+        }
     };
 
     const handleToggleTimer = () => {
@@ -528,6 +566,9 @@ const App = () => {
                         handleAddPlayer={handleAddPlayer}
                         players={players}
                         handleRemovePlayer={handleRemovePlayer}
+                        handleEditPlayer={handleEditPlayer}
+                        handleCancelEditPlayer={handleCancelEditPlayer}
+                        editingPlayerId={editingPlayerId}
                     />
                 )}
 
