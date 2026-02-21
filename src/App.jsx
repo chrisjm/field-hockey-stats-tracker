@@ -505,6 +505,29 @@ const App = () => {
         openPlayerSelector(event.statType, event.time, 'edit', event.id);
     };
 
+    const handleEditEventTime = (eventId) => {
+        if (!currentGame) return;
+        const event = currentGame.events.find(item => item.id === eventId);
+        if (!event) return;
+        const nextValue = window.prompt('Enter new time (MM:SS)', formatTime(event.time));
+        if (nextValue === null) return;
+        const parsed = parseTimeInput(nextValue);
+        if (parsed === null) {
+            alert('Enter time as MM:SS');
+            return;
+        }
+        updateCurrentGame(game => {
+            const eventIndex = game.events.findIndex(item => item.id === eventId);
+            if (eventIndex === -1) return game;
+            game.events[eventIndex] = {
+                ...game.events[eventIndex],
+                time: Math.max(0, parsed),
+                timestamp: new Date().toISOString()
+            };
+            return game;
+        });
+    };
+
     const handleExportStats = () => {
         const statsData = { players, games, exportDate: new Date().toISOString() };
         const dataStr = JSON.stringify(statsData, null, 2);
@@ -605,6 +628,7 @@ const App = () => {
                         handleEventClick={handleEventClick}
                         sortedEvents={sortedEvents}
                         handleEditEvent={handleEditEvent}
+                        handleEditEventTime={handleEditEventTime}
                         handleDeleteEvent={handleDeleteEvent}
                     />
                 )}

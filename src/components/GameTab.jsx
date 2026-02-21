@@ -26,6 +26,7 @@ const GameTab = ({
     handleEventClick,
     sortedEvents,
     handleEditEvent,
+    handleEditEventTime,
     handleDeleteEvent
 }) => (
     <section>
@@ -175,6 +176,9 @@ const GameTab = ({
                             </div>
                             <div className="flex items-center gap-3">
                                 <span className="text-sm font-mono font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">{formatTime(event.time)}</span>
+                                <button onClick={() => handleEditEventTime(event.id)} className="text-gray-400 hover:text-indigo-600 p-1" title="Edit time">
+                                    <i className="fas fa-clock"></i>
+                                </button>
                                 {isHome && (
                                     <button onClick={() => handleEditEvent(event.id)} className="text-gray-400 hover:text-indigo-600 p-1" title="Edit player">
                                         <i className="fas fa-user-edit"></i>
