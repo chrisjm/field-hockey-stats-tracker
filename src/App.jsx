@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { emptyStats, formatStatType, formatTime, getStatKey, parseTimeInput } from './helpers';
 import SetupTab from './components/SetupTab';
 import RosterTab from './components/RosterTab';
@@ -30,6 +30,8 @@ const App = () => {
     const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
     const [editingGameId, setEditingGameId] = useState(null);
     const [editingPlayerId, setEditingPlayerId] = useState(null);
+    const timerRef = useRef(null);
+    const previousGameIdRef = useRef(null);
 
     const currentGame = useMemo(
         () => games.find(game => game.id === currentGameId) || null,
@@ -127,18 +129,35 @@ const App = () => {
     }, []);
 
     useEffect(() => {
-        if (!currentGameId) return;
+        if (!currentGameId) {
+            previousGameIdRef.current = null;
+            return;
+        }
+        if (previousGameIdRef.current === currentGameId) return;
         const nextGame = games.find(game => game.id === currentGameId);
         setGameTime(nextGame?.gameTime || 0);
         setIsTimerRunning(false);
+        previousGameIdRef.current = currentGameId;
     }, [currentGameId, games]);
 
     useEffect(() => {
-        if (!isTimerRunning) return undefined;
-        const interval = setInterval(() => {
-            setGameTime(prev => prev + 1);
-        }, 1000);
-        return () => clearInterval(interval);
+        if (isTimerRunning && !timerRef.current) {
+            timerRef.current = setInterval(() => {
+                setGameTime(prev => prev + 1);
+            }, 1000);
+        }
+
+        if (!isTimerRunning && timerRef.current) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+        }
+
+        return () => {
+            if (timerRef.current) {
+                clearInterval(timerRef.current);
+                timerRef.current = null;
+            }
+        };
     }, [isTimerRunning]);
 
     useEffect(() => {
