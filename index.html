@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Hockey Stats Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Minimal custom styles for things Tailwind is too verbose for */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen font-sans text-gray-800">
+    <div class="max-w-3xl mx-auto md:p-4">
+
+        <!-- Header -->
+        <header
+            class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-b-xl shadow-md mb-4 text-center">
+            <h1 class="text-3xl font-bold mb-2"><i class="fas fa-hockey-puck mr-2"></i>Field Hockey Stats</h1>
+            <p class="text-blue-100 opacity-90">Track your niece's games instantly</p>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex bg-white rounded-t-xl overflow-hidden shadow-sm mx-2 md:mx-0">
+            <button
+                class="tab-btn active flex-1 py-3 px-2 text-sm font-medium border-b-2 border-indigo-600 text-indigo-600 focus:outline-none transition-colors"
+                data-tab="setup">Setup</button>
+            <button
+                class="tab-btn flex-1 py-3 px-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
+                data-tab="roster">Roster</button>
+            <button
+                class="tab-btn flex-1 py-3 px-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
+                data-tab="game">Live Game</button>
+            <button
+                class="tab-btn flex-1 py-3 px-2 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
+                data-tab="stats">Stats</button>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="bg-white rounded-b-xl shadow-md p-4 md:p-6 mb-8 mx-2 md:mx-0 min-h-[500px]">
+
+            <!-- Game Setup Tab -->
+            <section id="setup" class="tab-content active">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b border-gray-200 pb-2">Game Setup</h2>
+
+                <div class="bg-gray-50 p-4 rounded-lg mb-8 space-y-4 border border-gray-100">
+                    <div>
+                        <label for="home-team" class="block text-sm font-semibold text-gray-700 mb-1">Our Team
+                            (Home):</label>
+                        <input type="text" id="home-team"
+                            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                            placeholder="Enter team name">
+                    </div>
+                    <div>
+                        <label for="away-team" class="block text-sm font-semibold text-gray-700 mb-1">Opponent
+                            (Away):</label>
+                        <input type="text" id="away-team"
+                            class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                            placeholder="Enter opponent name">
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="game-date" class="block text-sm font-semibold text-gray-700 mb-1">Game Date &
+                                Time:</label>
+                            <input type="datetime-local" id="game-date"
+                                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label for="game-location"
+                                class="block text-sm font-semibold text-gray-700 mb-1">Location:</label>
+                            <input type="text" id="game-location"
+                                class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none"
+                                placeholder="Enter game location">
+                        </div>
+                    </div>
+                    <button id="start-game"
+                        class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-md shadow transition duration-200">Start
+                        New Game</button>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Recent Games</h3>
+                    <div id="games-list" class="space-y-3">
+                        <!-- Games populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Team Roster Tab -->
+            <section id="roster" class="tab-content">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b border-gray-200 pb-2">Team Roster</h2>
+
+                <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg mb-6">
+                    <p class="text-sm text-blue-800 mb-3"><i class="fas fa-info-circle mr-1"></i> <strong>Fast Entry
+                            Mode:</strong> Type details and press Enter to quickly add players without using the mouse.
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                        <div class="md:col-span-5">
+                            <label for="player-name" class="block text-xs font-semibold text-gray-600 mb-1">Player
+                                Name</label>
+                            <input type="text" id="player-name"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="e.g. Sarah Smith">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="player-number" class="block text-xs font-semibold text-gray-600 mb-1">Jersey
+                                #</label>
+                            <input type="number" id="player-number"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                                placeholder="#" min="0" max="99">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="player-position" class="block text-xs font-semibold text-gray-600 mb-1">Position
+                                (Opt)</label>
+                            <select id="player-position"
+                                class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                                <option value="">Any</option>
+                                <option value="Forward">Forward</option>
+                                <option value="Midfielder">Mid</option>
+                                <option value="Defender">Defense</option>
+                                <option value="Goalkeeper">Goalie</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button id="add-player"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition shadow-sm">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-3 flex justify-between items-center">
+                        Current Roster <span id="roster-count"
+                            class="text-sm bg-gray-200 text-gray-600 py-1 px-2 rounded-full">0 Players</span>
+                    </h3>
+                    <div id="players-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <!-- Players populated here -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Live Game Tab -->
+            <section id="game" class="tab-content">
+                <!-- Scoreboard Area -->
+                <div class="bg-gray-900 text-white rounded-xl p-4 mb-6 shadow-lg relative overflow-hidden">
+                    <div
+                        class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500">
+                    </div>
+
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="text-center w-5/12">
+                            <h3 id="home-team-name" class="text-sm md:text-base font-bold text-gray-300 truncate">Our
+                                Team</h3>
+                            <div id="home-score" class="text-5xl md:text-6xl font-black text-white mt-1">0</div>
+                        </div>
+
+                        <div class="w-2/12 flex flex-col items-center justify-center">
+                            <span class="text-xs text-gray-400 font-bold tracking-widest uppercase mb-1">Period</span>
+                            <span id="game-period" class="text-xl font-bold text-indigo-400 mb-2">1</span>
+
+                            <div class="bg-gray-800 rounded px-3 py-1 text-center font-mono w-full">
+                                <span id="game-timer" class="text-xl md:text-2xl font-bold text-yellow-400">00:00</span>
+                            </div>
+                        </div>
+
+                        <div class="text-center w-5/12">
+                            <h3 id="away-team-name" class="text-sm md:text-base font-bold text-gray-300 truncate">
+                                Opponent</h3>
+                            <div id="away-score" class="text-5xl md:text-6xl font-black text-gray-400 mt-1">0</div>
+                        </div>
+                    </div>
+
+                    <button id="toggle-timer"
+                        class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded shadow transition">
+                        <i class="fas fa-play mr-2"></i> Start Clock
+                    </button>
+
+                    <div class="mt-3 bg-gray-800/60 rounded-lg p-3">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div class="flex items-center gap-2">
+                                <label for="game-time-input" class="text-xs font-semibold text-gray-300 uppercase">Set Time</label>
+                                <input id="game-time-input" type="text" inputmode="numeric" placeholder="MM:SS"
+                                    class="w-20 bg-gray-900 text-yellow-300 font-mono text-sm rounded px-2 py-1 border border-gray-700 focus:outline-none focus:border-yellow-400" />
+                                <button id="set-game-time"
+                                    class="px-2.5 py-1 bg-yellow-500 hover:bg-yellow-400 text-gray-900 text-xs font-bold rounded shadow">Apply</button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" data-adjust="-60">-1:00</button>
+                                <button class="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" data-adjust="-10">-0:10</button>
+                                <button class="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" data-adjust="10">+0:10</button>
+                                <button class="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" data-adjust="60">+1:00</button>
+                            </div>
+                        </div>
+                        <p class="mt-2 text-[11px] text-gray-400">Tip: enter time as MM:SS and hit Apply.</p>
+                    </div>
+                </div>
+
+                <!-- Action Area (Event First) -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 border-b pb-1">Our Actions
+                        (Tap to Record)</h3>
+
+                    <!-- Primary Positive Stats -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                        <button
+                            class="stat-btn bg-green-100 hover:bg-green-200 border-2 border-green-500 text-green-800 font-bold py-4 rounded-lg shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="goal" data-team="home">
+                            <i class="fas fa-futbol text-2xl mb-1"></i>
+                            <span>Goal</span>
+                        </button>
+                        <button
+                            class="stat-btn bg-blue-50 hover:bg-blue-100 border-2 border-blue-400 text-blue-800 font-bold py-4 rounded-lg shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="shot" data-team="home">
+                            <i class="fas fa-crosshairs text-2xl mb-1"></i>
+                            <span>Shot</span>
+                        </button>
+                        <button
+                            class="stat-btn bg-purple-50 hover:bg-purple-100 border-2 border-purple-400 text-purple-800 font-bold py-4 rounded-lg shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="penalty-corner" data-team="home">
+                            <i class="fas fa-flag-checkered text-2xl mb-1"></i>
+                            <span class="text-xs md:text-base">Corner</span>
+                        </button>
+                        <button
+                            class="stat-btn bg-teal-50 hover:bg-teal-100 border-2 border-teal-400 text-teal-800 font-bold py-4 rounded-lg shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="save" data-team="home">
+                            <i class="fas fa-shield-alt text-2xl mb-1"></i>
+                            <span>Save</span>
+                        </button>
+                    </div>
+
+                    <!-- Secondary Stats -->
+                    <div class="grid grid-cols-3 md:grid-cols-5 gap-2 mb-6">
+                        <button
+                            class="stat-btn bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-700 py-2 rounded shadow-sm text-sm font-semibold transition flex flex-col items-center"
+                            data-stat="assist" data-team="home">
+                            <i class="fas fa-hands-helping mb-1 text-gray-500"></i> Assist
+                        </button>
+                        <button
+                            class="stat-btn bg-orange-50 hover:bg-orange-100 border border-orange-300 text-orange-800 py-2 rounded shadow-sm text-sm font-semibold transition flex flex-col items-center"
+                            data-stat="turnover" data-team="home">
+                            <i class="fas fa-exchange-alt mb-1 text-orange-500"></i> Turnover
+                        </button>
+                        <button
+                            class="stat-btn bg-red-50 hover:bg-red-100 border border-red-300 text-red-800 py-2 rounded shadow-sm text-sm font-semibold transition flex flex-col items-center"
+                            data-stat="foul" data-team="home">
+                            <i class="fas fa-exclamation-triangle mb-1 text-red-500"></i> Foul
+                        </button>
+                        <button
+                            class="stat-btn bg-green-100 hover:bg-green-200 border border-green-400 text-green-800 py-2 rounded shadow-sm text-sm font-semibold transition flex flex-col items-center"
+                            data-stat="green-card" data-team="home">
+                            <i class="fas fa-square mb-1 text-green-600"></i> Green Card
+                        </button>
+                        <button
+                            class="stat-btn bg-yellow-100 hover:bg-yellow-200 border border-yellow-400 text-yellow-800 py-2 rounded shadow-sm text-sm font-semibold transition flex flex-col items-center"
+                            data-stat="yellow-card" data-team="home">
+                            <i class="fas fa-square mb-1 text-yellow-500"></i> Yellow Card
+                        </button>
+                    </div>
+
+                    <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 border-b pb-1">Opponent
+                        Actions</h3>
+
+                    <div class="grid grid-cols-3 gap-2">
+                        <button
+                            class="stat-btn bg-gray-800 hover:bg-gray-700 border-2 border-gray-900 text-white font-bold py-3 rounded-lg shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="goal" data-team="away">
+                            <span>Opp Goal</span>
+                        </button>
+                        <button
+                            class="stat-btn bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-800 font-semibold py-3 rounded shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="shot" data-team="away">
+                            <span>Opp Shot</span>
+                        </button>
+                        <button
+                            class="stat-btn bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-800 font-semibold py-3 rounded shadow-sm transition flex flex-col items-center justify-center gap-1"
+                            data-stat="penalty-corner" data-team="away">
+                            <span class="text-xs md:text-sm">Opp Corner</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timeline -->
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center"><i
+                            class="fas fa-history mr-2 text-indigo-500"></i>Timeline</h3>
+                    <div id="events-list"
+                        class="bg-gray-50 border border-gray-200 rounded-lg p-2 h-64 overflow-y-auto space-y-2">
+                        <!-- Events populated here -->
+                        <div class="text-center text-gray-400 py-8 italic text-sm">No events recorded yet. Start the
+                            game and log actions!</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Tab -->
+            <section id="stats" class="tab-content">
+                <div
+                    class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-gray-200 pb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Team Statistics</h2>
+
+                    <div class="flex w-full md:w-auto gap-2">
+                        <select id="stats-game-select"
+                            class="flex-1 md:w-48 p-2 border border-gray-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+                            <option value="all">All Games</option>
+                        </select>
+                        <button id="export-stats"
+                            class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded shadow transition text-sm font-semibold flex items-center whitespace-nowrap">
+                            <i class="fas fa-download mr-2"></i> Export
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-4 text-white shadow-md">
+                        <p class="text-indigo-100 text-sm font-semibold mb-1 uppercase tracking-wide">Games Played</p>
+                        <p class="text-3xl font-bold" id="total-games">0</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white shadow-md">
+                        <p class="text-green-100 text-sm font-semibold mb-1 uppercase tracking-wide">Our Goals</p>
+                        <p class="text-3xl font-bold" id="total-goals">0</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white shadow-md">
+                        <p class="text-blue-100 text-sm font-semibold mb-1 uppercase tracking-wide">Total Assists</p>
+                        <p class="text-3xl font-bold" id="total-assists">0</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white shadow-md">
+                        <p class="text-purple-100 text-sm font-semibold mb-1 uppercase tracking-wide">Win Rate</p>
+                        <p class="text-3xl font-bold" id="win-rate">0%</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Player Statistics</h3>
+                    <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+                        <table id="player-stats-table" class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Player</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Goals</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Assists</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Pts</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Shots</th>
+                                    <th scope="col"
+                                        class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                                        Saves</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200" id="stats-tbody">
+                                <!-- Stats populated here -->
+                                <tr>
+                                    <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">No data
+                                        available</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Player Selection Modal Overlay (Hidden by default) -->
+    <div id="player-selector-modal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 hidden flex flex-col justify-end md:justify-center items-center">
+        <div
+            class="bg-white w-full md:w-3/4 max-w-2xl rounded-t-2xl md:rounded-xl p-4 md:p-6 shadow-2xl animate-slide-up transform transition-all">
+            <div class="flex justify-between items-center mb-4 pb-2 border-b">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800" id="modal-title">Who did it?</h2>
+                    <p class="text-sm text-gray-500" id="modal-subtitle">Assigning to action</p>
+                </div>
+                <button id="cancel-player-select" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <div id="modal-players-grid"
+                class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[60vh] overflow-y-auto p-1">
+                <!-- Players generated dynamically -->
+            </div>
+
+            <div class="mt-4 pt-4 border-t flex justify-between">
+                <button id="assign-unknown"
+                    class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-4 rounded-lg transition">
+                    Skip / Unknown Player
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <style>
+        .animate-slide-up {
+            animation: slideUp 0.3s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</body>
+
+</html>
