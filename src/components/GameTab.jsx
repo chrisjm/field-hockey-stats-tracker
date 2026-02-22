@@ -17,12 +17,11 @@ const GameTab = ({
     currentGame,
     homeScorePulse,
     gameTime,
-    isTimerRunning,
     timeInput,
     setTimeInput,
-    handleToggleTimer,
     handleApplyTime,
     handleAdjustTime,
+    handleSelectPeriod,
     handleEventClick,
     sortedEvents,
     handleEditEvent,
@@ -54,18 +53,10 @@ const GameTab = ({
                 </div>
             </div>
 
-            <button
-                onClick={handleToggleTimer}
-                className={`w-full py-2 text-white font-bold rounded shadow transition ${isTimerRunning ? 'bg-red-600 hover:bg-red-500' : 'bg-indigo-600 hover:bg-indigo-500'}`}
-            >
-                <i className={`fas ${isTimerRunning ? 'fa-pause' : 'fa-play'} mr-2`}></i>
-                {isTimerRunning ? 'Pause Clock' : 'Start Clock'}
-            </button>
-
             <div className="mt-3 bg-gray-800/60 rounded-lg p-3">
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
-                        <label className="text-xs font-semibold text-gray-300 uppercase">Set Time</label>
+                        <label className="text-xs font-semibold text-gray-300 uppercase">Last Entered Time</label>
                         <input
                             type="text"
                             inputMode="numeric"
@@ -85,9 +76,32 @@ const GameTab = ({
                     <div className="flex items-center gap-2">
                         <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(-60)}>-1:00</button>
                         <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(-10)}>-0:10</button>
+                        <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(-5)}>-0:05</button>
+                        <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(5)}>+0:05</button>
                         <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(10)}>+0:10</button>
                         <button className="time-adjust-btn px-2 py-1 bg-gray-700 hover:bg-gray-600 text-xs font-semibold rounded" onClick={() => handleAdjustTime(60)}>+1:00</button>
                     </div>
+                </div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-semibold text-gray-300 uppercase">Quarter</span>
+                    {[1, 2, 3, 4, 'OT'].map(period => {
+                        const isActive = (currentGame?.period ?? 1) === period;
+                        const label = period === 'OT' ? 'OT' : `Q${period}`;
+                        return (
+                            <button
+                                key={label}
+                                onClick={() => handleSelectPeriod(period)}
+                                className={`h-9 w-9 rounded-full border text-xs font-bold transition shadow-sm ${isActive
+                                    ? 'bg-yellow-400 text-gray-900 border-yellow-300'
+                                    : 'bg-gray-900 text-gray-300 border-gray-700 hover:border-yellow-300 hover:text-yellow-300'
+                                    }`}
+                                title={`Set period to ${label}`}
+                            >
+                                {label}
+                            </button>
+                        );
+                    })}
+                    <span className="text-[11px] text-gray-400">Changing periods resets time to 15:00.</span>
                 </div>
                 <p className="mt-2 text-[11px] text-gray-400">Tip: enter time as MM:SS and hit Apply.</p>
             </div>
@@ -175,7 +189,12 @@ const GameTab = ({
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-sm font-mono font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">{formatTime(event.time)}</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[11px] font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                                        {event.period === 'OT' ? 'OT' : `Q${event.period ?? 1}`}
+                                    </span>
+                                    <span className="text-sm font-mono font-semibold text-gray-500 bg-gray-200 px-2 py-1 rounded">{formatTime(event.time)}</span>
+                                </div>
                                 <button onClick={() => handleEditEventTime(event.id)} className="text-gray-400 hover:text-indigo-600 p-1" title="Edit time">
                                     <i className="fas fa-clock"></i>
                                 </button>

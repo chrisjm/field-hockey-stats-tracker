@@ -6,13 +6,14 @@ import GameTab from './components/GameTab';
 import StatsTab from './components/StatsTab';
 import PlayerModal from './components/PlayerModal';
 
+const DEFAULT_PERIOD_TIME = 15 * 60;
+
 const App = () => {
     const [activeTab, setActiveTab] = useState('games');
     const [players, setPlayers] = useState([]);
     const [games, setGames] = useState([]);
     const [currentGameId, setCurrentGameId] = useState(null);
     const [gameTime, setGameTime] = useState(0);
-    const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [pendingEvent, setPendingEvent] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [statsFilter, setStatsFilter] = useState('all');
@@ -30,7 +31,6 @@ const App = () => {
     const [hasLoadedStorage, setHasLoadedStorage] = useState(false);
     const [editingGameId, setEditingGameId] = useState(null);
     const [editingPlayerId, setEditingPlayerId] = useState(null);
-    const timerRef = useRef(null);
     const previousGameIdRef = useRef(null);
 
     const currentGame = useMemo(
@@ -139,29 +139,8 @@ const App = () => {
         if (previousGameIdRef.current === currentGameId) return;
         const nextGame = games.find(game => game.id === currentGameId);
         setGameTime(nextGame?.gameTime || 0);
-        setIsTimerRunning(false);
         previousGameIdRef.current = currentGameId;
     }, [currentGameId, games]);
-
-    useEffect(() => {
-        if (isTimerRunning && !timerRef.current) {
-            timerRef.current = setInterval(() => {
-                setGameTime(prev => prev + 1);
-            }, 1000);
-        }
-
-        if (!isTimerRunning && timerRef.current) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-        }
-
-        return () => {
-            if (timerRef.current) {
-                clearInterval(timerRef.current);
-                timerRef.current = null;
-            }
-        };
-    }, [isTimerRunning]);
 
     useEffect(() => {
         setTimeInput(formatTime(gameTime));
@@ -237,8 +216,7 @@ const App = () => {
 
         setGames(prev => [...prev, game]);
         setCurrentGameId(game.id);
-        setGameTime(0);
-        setIsTimerRunning(false);
+        setGameTime(DEFAULT_PERIOD_TIME);
         setActiveTab('game');
     };
 
@@ -326,10 +304,6 @@ const App = () => {
         }
     };
 
-    const handleToggleTimer = () => {
-        setIsTimerRunning(prev => !prev);
-    };
-
     const handleApplyTime = () => {
         const parsed = parseTimeInput(timeInput);
         if (parsed === null) {
@@ -341,6 +315,15 @@ const App = () => {
 
     const handleAdjustTime = (delta) => {
         setGameTime(prev => Math.max(0, prev + delta));
+    };
+
+    const handleSelectPeriod = (period) => {
+        if (!currentGame) return;
+        updateCurrentGame(game => ({
+            ...game,
+            period
+        }));
+        setGameTime(DEFAULT_PERIOD_TIME);
     };
 
     const openPlayerSelector = (statType, time, mode = 'create', eventId = null) => {
@@ -622,12 +605,11 @@ const App = () => {
                         currentGame={currentGame}
                         homeScorePulse={homeScorePulse}
                         gameTime={gameTime}
-                        isTimerRunning={isTimerRunning}
                         timeInput={timeInput}
                         setTimeInput={setTimeInput}
-                        handleToggleTimer={handleToggleTimer}
                         handleApplyTime={handleApplyTime}
                         handleAdjustTime={handleAdjustTime}
+                        handleSelectPeriod={handleSelectPeriod}
                         handleEventClick={handleEventClick}
                         sortedEvents={sortedEvents}
                         handleEditEvent={handleEditEvent}
